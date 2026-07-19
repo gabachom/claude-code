@@ -1,0 +1,404 @@
+---
+// =============================================================
+// pro-lp-builder LPテンプレート
+// 詰め替え方法: この config 内の "{{...}}" を content-map.md に
+// 従って自社情報へ置換する。テンプレート本体(HTML)は原則触らない。
+// 置換前でもビルドは通る(プレースホルダは文字列のため)。
+// =============================================================
+const config = {
+  companyName: "{{COMPANY_NAME}}",
+  serviceName: "{{SERVICE_NAME}}",
+  siteUrl: "{{SITE_URL}}",
+  metaTitle: "{{META_TITLE}}",
+  metaDescription: "{{META_DESCRIPTION}}",
+  alternateNames: ["{{ALTERNATE_NAME_1}}", "{{ALTERNATE_NAME_2}}"],
+  hero: {
+    copy: "{{HERO_COPY}}",
+    sub: "{{HERO_SUB}}",
+    ctaPrimary: { label: "{{HERO_CTA_PRIMARY}}", href: "#diagnosis" },
+    ctaSecondary: { label: "{{HERO_CTA_SECONDARY}}", href: "#contact" },
+    stats: [
+      { value: "{{HERO_STATS_1_VALUE}}", label: "{{HERO_STATS_1_LABEL}}" },
+      { value: "{{HERO_STATS_2_VALUE}}", label: "{{HERO_STATS_2_LABEL}}" },
+      { value: "{{HERO_STATS_3_VALUE}}", label: "{{HERO_STATS_3_LABEL}}" },
+    ],
+  },
+  problems: ["{{PROBLEM_1}}", "{{PROBLEM_2}}", "{{PROBLEM_3}}"],
+  pillars: [
+    { name: "{{PILLAR_1_NAME}}", desc: "{{PILLAR_1_DESC}}" },
+    { name: "{{PILLAR_2_NAME}}", desc: "{{PILLAR_2_DESC}}" },
+    { name: "{{PILLAR_3_NAME}}", desc: "{{PILLAR_3_DESC}}" },
+    { name: "{{PILLAR_4_NAME}}", desc: "{{PILLAR_4_DESC}}" },
+    { name: "{{PILLAR_5_NAME}}", desc: "{{PILLAR_5_DESC}}" },
+  ],
+  cases: [
+    { tag: "{{CASE_1_TAG}}", title: "{{CASE_1_TITLE}}", desc: "{{CASE_1_DESC}}" },
+    { tag: "{{CASE_2_TAG}}", title: "{{CASE_2_TITLE}}", desc: "{{CASE_2_DESC}}" },
+    { tag: "{{CASE_3_TAG}}", title: "{{CASE_3_TITLE}}", desc: "{{CASE_3_DESC}}" },
+  ],
+  testimonials: [
+    { company: "{{TESTIMONIAL_1_COMPANY}}", quote: "{{TESTIMONIAL_1_QUOTE}}" },
+    { company: "{{TESTIMONIAL_2_COMPANY}}", quote: "{{TESTIMONIAL_2_QUOTE}}" },
+  ],
+  roadmap: [
+    { period: "〜1ヶ月", desc: "{{ROADMAP_1}}" },
+    { period: "1〜3ヶ月", desc: "{{ROADMAP_2}}" },
+    { period: "3〜6ヶ月", desc: "{{ROADMAP_3}}" },
+  ],
+  pricing: [
+    { plan: "{{PRICING_1_PLAN}}", price: "{{PRICING_1_PRICE}}", desc: "{{PRICING_1_DESC}}" },
+    { plan: "{{PRICING_2_PLAN}}", price: "{{PRICING_2_PRICE}}", desc: "{{PRICING_2_DESC}}" },
+  ],
+  whitepaper: { title: "{{WHITEPAPER_TITLE}}", desc: "{{WHITEPAPER_DESC}}" },
+  author: {
+    name: "{{AUTHOR_NAME}}",
+    nameEn: "{{AUTHOR_NAME_EN}}",
+    title: "{{AUTHOR_TITLE}}",
+    bio: "{{AUTHOR_BIO}}",
+    xUrl: "{{AUTHOR_X_URL}}",
+    youtubeUrl: "{{AUTHOR_YOUTUBE_URL}}",
+  },
+  faq: [
+    { q: "{{FAQ_1_Q}}", a: "{{FAQ_1_A}}" },
+    { q: "{{FAQ_2_Q}}", a: "{{FAQ_2_A}}" },
+    { q: "{{FAQ_3_Q}}", a: "{{FAQ_3_A}}" },
+    { q: "{{FAQ_4_Q}}", a: "{{FAQ_4_A}}" },
+    { q: "{{FAQ_5_Q}}", a: "{{FAQ_5_A}}" },
+    { q: "{{FAQ_6_Q}}", a: "{{FAQ_6_A}}" },
+    { q: "{{FAQ_7_Q}}", a: "{{FAQ_7_A}}" },
+  ],
+  contactEmail: "{{CONTACT_EMAIL}}",
+  bookingUrl: "{{BOOKING_URL}}",
+  gaMeasurementId: "", // "G-XXXX" を設定すると計測タグが有効化される
+};
+
+// ---- 構造化データ(JSON-LD)。検索エンジン向けの"名刺データ" ----
+const orgLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: config.companyName,
+  alternateName: config.alternateNames,
+  url: config.siteUrl,
+  contactPoint: { "@type": "ContactPoint", email: config.contactEmail, contactType: "sales" },
+};
+const personLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: config.author.name,
+  alternateName: config.author.nameEn,
+  jobTitle: config.author.title,
+  url: `${config.siteUrl}/author/`,
+  sameAs: [config.author.xUrl, config.author.youtubeUrl],
+  worksFor: { "@type": "Organization", name: config.companyName },
+};
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: config.faq.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "ホーム", item: config.siteUrl },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{config.metaTitle}</title>
+    <meta name="description" content={config.metaDescription} />
+    <link rel="canonical" href={`${config.siteUrl}/`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={config.metaTitle} />
+    <meta property="og:description" content={config.metaDescription} />
+    <meta property="og:url" content={`${config.siteUrl}/`} />
+    <meta property="og:image" content={`${config.siteUrl}/ogp.png`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(orgLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(personLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
+    {config.gaMeasurementId && (
+      <script async src={`https://www.googletagmanager.com/gtag/js?id=${config.gaMeasurementId}`} />
+    )}
+  </head>
+  <body>
+    <!-- 1. ヘッダー -->
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href="/">{config.serviceName}</a>
+        <nav aria-label="メイン">
+          <a href="#pillars">サービス</a>
+          <a href="#cases">活用事例</a>
+          <a href="#pricing">料金</a>
+          <a href="#faq">FAQ</a>
+          <a class="btn btn-accent" href="#contact">無料相談・お問い合わせ</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- 2. ヒーロー -->
+      <section class="hero dark">
+        <div class="container">
+          <h1>{config.hero.copy}</h1>
+          <p class="hero-sub">{config.hero.sub}</p>
+          <p class="cta-row">
+            <a class="btn btn-accent btn-lg" href={config.hero.ctaPrimary.href}>{config.hero.ctaPrimary.label}</a>
+            <a class="btn btn-ghost btn-lg" href={config.hero.ctaSecondary.href}>{config.hero.ctaSecondary.label}</a>
+          </p>
+          <ul class="stats">
+            {config.hero.stats.map((s) => (
+              <li><strong>{s.value}</strong><span>{s.label}</span></li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <!-- 3. 顧客ロゴ: 掲載許諾を得たロゴ画像を /public/logos/ に置き <img> を並べる -->
+      <section class="logos" aria-label="導入企業">
+        <div class="container">
+          <p class="logos-note">導入企業(掲載許諾済みロゴをここに)</p>
+        </div>
+      </section>
+
+      <!-- 4. 課題提起 -->
+      <section id="problems">
+        <div class="container">
+          <h2>こんなお悩みはありませんか?</h2>
+          <ul class="checklist">
+            {config.problems.map((p) => <li>{p}</li>)}
+          </ul>
+        </div>
+      </section>
+
+      <!-- 5. サービス(5本柱) -->
+      <section id="pillars" class="alt">
+        <div class="container">
+          <h2>{config.serviceName}の5つの支援</h2>
+          <div class="grid">
+            {config.pillars.map((p) => (
+              <article class="card">
+                <h3>{p.name}</h3>
+                <p>{p.desc}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. 活用事例 -->
+      <section id="cases">
+        <div class="container">
+          <h2>活用事例</h2>
+          <div class="grid">
+            {config.cases.map((c) => (
+              <article class="card">
+                <span class="tag">{c.tag}</span>
+                <h3>{c.title}</h3>
+                <p>{c.desc}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. 無料診断CTA(測る装置・リードゲート) — 実装は lead-capture スキル -->
+      <section id="diagnosis" class="dark">
+        <div class="container center">
+          <h2>まずは、無料の診断から。</h2>
+          <p>8問に答えるだけで、現状が5軸レーダーで分かります。詳しいレポートはメールでお届けします。</p>
+          <p><a class="btn btn-accent btn-lg" href={config.bookingUrl}>1分で無料診断をはじめる</a></p>
+        </div>
+      </section>
+
+      <!-- 8. 導入事例・お客様の声 -->
+      <section id="testimonials" class="alt">
+        <div class="container">
+          <h2>お客様の声</h2>
+          <div class="grid">
+            {config.testimonials.map((t) => (
+              <blockquote class="card">
+                <p>{t.quote}</p>
+                <footer>— {t.company}</footer>
+              </blockquote>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. 導入の流れ(推奨ロードマップ) -->
+      <section id="roadmap">
+        <div class="container">
+          <h2>推奨ロードマップ</h2>
+          <ol class="roadmap">
+            {config.roadmap.map((r) => (
+              <li><strong>{r.period}</strong><span>{r.desc}</span></li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <!-- 10. 料金・プラン -->
+      <section id="pricing" class="alt">
+        <div class="container">
+          <h2>料金プラン</h2>
+          <div class="grid">
+            {config.pricing.map((p) => (
+              <article class="card">
+                <h3>{p.plan}</h3>
+                <p class="price">{p.price}</p>
+                <p>{p.desc}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. ホワイトペーパー(読む装置) — 配布導線は lead-capture スキル -->
+      <section id="whitepaper">
+        <div class="container center">
+          <h2>{config.whitepaper.title}</h2>
+          <p>{config.whitepaper.desc}</p>
+          <p><a class="btn btn-accent" href="#contact">資料を請求する</a></p>
+        </div>
+      </section>
+
+      <!-- 12. 著者・運営者(E-E-A-T) -->
+      <section id="author" class="alt">
+        <div class="container">
+          <h2>運営者</h2>
+          <article class="card author-card">
+            <h3>{config.author.name}<small>({config.author.title})</small></h3>
+            <p>{config.author.bio}</p>
+            <p>
+              <a href={config.author.xUrl} rel="me">X(Twitter)</a> /
+              <a href={config.author.youtubeUrl} rel="me">YouTube</a> /
+              <a href="/author/">プロフィール詳細</a>
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- 13. ブログ最新記事 — blog-automation スキルの出力(/blog/)と連動 -->
+      <section id="blog">
+        <div class="container">
+          <h2>ブログ最新記事</h2>
+          <p>毎日更新中。<a href="/blog/">記事一覧を見る →</a></p>
+        </div>
+      </section>
+
+      <!-- 14. FAQ(FAQPage構造化データと本文を一致させること) -->
+      <section id="faq" class="alt">
+        <div class="container">
+          <h2>よくある質問</h2>
+          {config.faq.map((f) => (
+            <details class="faq-item">
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <!-- 15. 問い合わせ(必須3項目のみ+bot対策) -->
+      <section id="contact" class="dark">
+        <div class="container">
+          <h2>資料請求・お問い合わせ</h2>
+          <form method="post" action="/api/contact" class="contact-form">
+            <label>お名前<input name="name" required autocomplete="name" /></label>
+            <label>メールアドレス<input name="email" type="email" required autocomplete="email" /></label>
+            <label>ご相談内容<textarea name="message" rows="4" required /></label>
+            <!-- ハニーポット: botだけが埋める不可視項目。値があれば受付側で破棄 -->
+            <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp" />
+            <button class="btn btn-accent btn-lg" type="submit">無料で相談する →</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© {new Date().getFullYear()} {config.companyName}</p>
+        <p><a href="/privacy/">プライバシーポリシー</a> / <a href="/tokushoho/">特定商取引法に基づく表記</a></p>
+      </div>
+    </footer>
+
+    <style>
+      /* design-system.md 準拠。色は :root の変数だけ差し替える */
+      :root {
+        --color-bg: #fdf9f2;
+        --color-surface: #ffffff;
+        --color-accent: #e8590c;
+        --color-accent-weak: #fff0e6;
+        --color-text: #1f2937;
+        --color-text-muted: #6b7280;
+        --color-dark: #1a2333;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+        color: var(--color-text);
+        background: var(--color-bg);
+        line-height: 1.8;
+      }
+      .container { max-width: 1080px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+      section { padding: clamp(48px, 8vw, 88px) 0; }
+      section.alt { background: var(--color-surface); }
+      section.dark { background: var(--color-dark); color: #fff; }
+      h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.4; margin: 0 0 16px; }
+      h2 { font-size: clamp(22px, 3.5vw, 32px); margin: 0 0 32px; }
+      h2::after { content: ""; display: block; width: 48px; height: 4px; background: var(--color-accent); margin-top: 12px; }
+      .center { text-align: center; }
+      .center h2::after { margin-inline: auto; }
+      .btn {
+        display: inline-block; padding: 12px 24px; border-radius: 8px;
+        text-decoration: none; font-weight: 700; border: 2px solid transparent;
+      }
+      .btn-accent { background: var(--color-accent); color: #fff; }
+      .btn-ghost { border-color: #fff; color: #fff; }
+      .btn-lg { padding: 16px 32px; font-size: 18px; }
+      .cta-row { display: flex; gap: 16px; flex-wrap: wrap; }
+      .site-header { position: sticky; top: 0; background: var(--color-surface); z-index: 10; box-shadow: 0 1px 4px rgb(0 0 0 / 8%); }
+      .header-inner { display: flex; align-items: center; justify-content: space-between; padding-block: 12px; }
+      .header-inner nav { display: flex; gap: 20px; align-items: center; }
+      .header-inner a { color: var(--color-text); text-decoration: none; }
+      .header-inner .btn { color: #fff; }
+      .logo { font-weight: 700; }
+      .stats { display: flex; gap: 32px; flex-wrap: wrap; list-style: none; padding: 0; margin-top: 40px; }
+      .stats strong { display: block; font-size: 32px; color: var(--color-accent); }
+      .logos-note { color: var(--color-text-muted); text-align: center; }
+      .checklist { list-style: none; padding: 0; }
+      .checklist li::before { content: "✔ "; color: var(--color-accent); font-weight: 700; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+      .card { background: var(--color-surface); border: 1px solid rgb(0 0 0 / 6%); border-radius: 12px; padding: 24px; margin: 0; }
+      section.alt .card { background: var(--color-bg); }
+      .tag { display: inline-block; background: var(--color-accent-weak); color: var(--color-accent); border-radius: 999px; padding: 2px 12px; font-size: 13px; font-weight: 700; }
+      .roadmap { list-style: none; padding: 0; counter-reset: step; }
+      .roadmap li { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid rgb(0 0 0 / 8%); }
+      .roadmap strong { min-width: 7em; color: var(--color-accent); }
+      .price { font-size: 28px; font-weight: 700; color: var(--color-accent); }
+      .faq-item { background: var(--color-bg); border-radius: 8px; padding: 12px 20px; margin-bottom: 12px; }
+      .faq-item summary { font-weight: 700; cursor: pointer; }
+      .contact-form { display: grid; gap: 16px; max-width: 560px; }
+      .contact-form label { display: grid; gap: 6px; font-weight: 700; }
+      .contact-form input, .contact-form textarea {
+        padding: 12px; border-radius: 8px; border: 1px solid rgb(0 0 0 / 20%); font: inherit;
+      }
+      .hp { position: absolute; left: -9999px; }
+      .site-footer { background: var(--color-surface); padding: 32px 0; color: var(--color-text-muted); }
+      img { max-width: 100%; height: auto; }
+      @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+    </style>
+  </body>
+</html>
