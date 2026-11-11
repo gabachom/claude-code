@@ -145,6 +145,16 @@
       },
       "source": "./plugins/security-guidance",
       "category": "security"
+    },
+    {
+      "name": "wordpress-paid-cards",
+      "description": "有料資料の原稿から WordPress 用カードHTMLを生成し、プレビューで確認・ワンクリックでコピー",
+      "version": "1.0.0",
+      "author": {
+        "name": "amiko.consulting"
+      },
+      "source": "./plugins/wordpress-paid-cards",
+      "category": "productivity"
     }
   ]
 }

@@ -1,0 +1,8 @@
+{
+  "name": "wordpress-paid-cards",
+  "version": "1.0.0",
+  "description": "有料資料の原稿から WordPress「カスタムHTML」ブロック用カードを生成し、プレビュー画面で確認・HTMLコピーできるようにする",
+  "author": {
+    "name": "amiko.consulting"
+  }
+}
